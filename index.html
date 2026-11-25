@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>空き家VR内覧</title>
+
+  <!-- Pannellum -->
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/pannellum@2.5.7/build/pannellum.css">
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/pannellum@2.5.7/build/pannellum.js">
+  </script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    h1 {
+      margin: 0;
+      padding: 18px;
+      text-align: center;
+      background: #fff;
+      font-size: 24px;
+    }
+
+    #panorama {
+      width: 100%;
+      height: 75vh;
+      min-height: 400px;
+      background: #222;
+    }
+
+    #homeButton {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 1000;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      background: #34483B;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    #description {
+      padding: 15px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    @media screen and (max-width: 600px) {
+      h1 {
+        font-size: 21px;
+      }
+
+      #panorama {
+        height: 60vh;
+        min-height: 350px;
+        max-height: 600px;
+      }
+
+      #homeButton {
+        top: 8px;
+        right: 8px;
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+
+      .pnlm-hotspot {
+        width: 42px;
+        height: 42px;
+      }
+
+      .pnlm-tooltip span {
+        font-size: 15px;
+      }
+
+      .pnlm-controls {
+        transform: scale(1.08);
+        transform-origin: top left;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1 id="pageTitle">空き家VR内覧</h1>
+
+  <button id="homeButton" type="button">
+    ⌂ 玄関に戻る
+  </button>
+
+  <div id="panorama"></div>
+
+  <div id="description">
+    写真をドラッグして室内を見渡せます。
+    表示されたボタンを押すと別の部屋へ移動できます。
+  </div>
+
+  <script src="./property-data.js?v=2"></script>
+  <script>
+    // 物件情報を読み込んでVRを作成
+    const scenes = {};
+
+    Object.entries(propertyData.rooms).forEach(([roomId, room]) => {
+      scenes[roomId] = {
+        title: room.title,
+        type: "equirectangular",
+        panorama: "images/" + room.image,
+
+        hotSpots: (room.hotSpots || []).map((spot) => ({
+          pitch: spot.pitch,
+          yaw: spot.yaw,
+          type: "scene",
+          text: spot.text,
+          sceneId: spot.sceneId
+        }))
+      };
+    });
+
+    document.getElementById("pageTitle").textContent =
+      propertyData.propertyName;
+
+    const viewer = pannellum.viewer("panorama", {
+      default: {
+        firstScene: propertyData.startScene,
+        sceneFadeDuration: 1000,
+        autoLoad: true
+      },
+      scenes: scenes
+    });
+
+    // どの部屋からでも玄関に戻る
+    document.getElementById("homeButton").addEventListener("click", () => {
+      viewer.loadScene(propertyData.entranceScene);
+    });
+  </script>
+
+</body>
+</html>
